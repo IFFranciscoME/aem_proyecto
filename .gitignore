@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# ignorar todos los archivos de datos
+*.csv
+
+# dejar de seguir todos los archivos de datos
+archivos/
+
 # C extensions
 *.so
 
