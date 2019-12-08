@@ -50,31 +50,34 @@ def f_stsc_mass(p_precios, p_calendario, p_escenario, p_indicador, p_ventana):
 
     # fecha inicial de serie query es un evento arbitrario del calendario
     fecha_ini = p_calendario[p_calendario['escenario'] == p_escenario]['timestamp'][0]
+    # se toma el timestamp de precios igual a timestamp del primer escenario del indicador
     ind_ini = np.where(p_precios['timestamp'] == fecha_ini)[0]
     # fecha final es la fecha inicial mas un tamaño de ventana arbitrario
     ind_fin = ind_ini + p_ventana
     # se construye la serie query
     serie_q = p_precios.iloc[ind_ini[0]:ind_fin[0], :]
     serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
-    # visualizar la serie query
 
     # se construye la serie de busqueda (un array de numpy de 1 dimension)
     serie = np.array((p_precios['close'] - p_precios['open']) * 10000)
 
     # parametros del algoritmo
-    # tamaño de ventana para iterar la busqueda
-    batch_size = 3000
-    # regresar los Top X casos que "mas se parezcan"
+    # tamaño de ventana para iterar la busqueda = tamaño de query x 100
+    batch_size = p_ventana*100
+    # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador economico
     top_matches = 180
-
     # regresar los indices y las distancias
     best_indices, best_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size, top_matches=top_matches)
 
-    # obtener las fechas de los indices regresados
-    fechas = [p_precios['timestamp'][best_indices[i]] for i in range(0, len(best_dists))]
+    # obtener las fechas de los indices regresados (fecha inicial del motif detectado)
+    m_fechas_i = [p_precios['timestamp'][best_indices[i]] for i in range(0, len(best_dists))]
+    m_fechas_f = [m_fechas_i[i+p_ventana] for i in range(0, len(m_fechas_i))]
 
-    # para cada fecha agregar tamaño de ventana de serie query y hacer ventanas para visualizar
-    # series de tiempo encontradas como similares a la original
+    # para cada rango de fecha se cuenta las veces que en tal rango se encuentra una fecha donde el
+    # mismo indicador se comunico y fue el mismo escenario
+
+    # se regresa data frame con informacion sobre el conteo de fechas de presencia del patron
+
 
     # iterar con todos los patrones de serie query, para cada ocurrencia del escenario elegido
     # para el indicador elegido, buscando saber si hubo repeticiones, si las hubo regresar la fechas
@@ -101,8 +104,8 @@ def f_escenario(p0_datos):
     # asignarle a consensus lo que tiene previous
     datos['consensus'][nan_consensus] = datos['previous'][nan_consensus]
 
-    # inicializar la columna escenario, habra los siguientes: A, B, C, D, E, F, G, H
-    datos['escenario'] = ''
+    # inicializar la columna escenario, habra los siguientes: A, B, C, D
+    datos['escenario'] = 'X'
 
     # -- -- A: actual >= previous & actual >= consensus & consensus >= previous
     datos['escenario'][((datos['actual'] >= datos['previous']) &

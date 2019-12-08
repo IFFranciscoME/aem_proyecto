@@ -30,10 +30,14 @@ df_pe_w['timestamp'] = df_pe_w['timestamp'].dt.tz_localize('UTC')
 
 # -- ----------------------------------------------------------------- Cargar datos Calendario Economico -- #
 df_ce = pd.read_csv("archivos/Calendario_Economico.csv")
-# seleccionar indicadores que hayan sido publicados 4 veces en cada mes (semanales)
-df_ce = df_ce.iloc[np.where(df_ce['timestamp'] == '01/04/2016 19:30:00')[0][0]:len(df_ce['timestamp'])]
+
+# eliminar los casos donde exista un nan en algun renglon
+df_ce = df_ce.dropna()
+df_ce = df_ce.reset_index(drop=True)
+df_ce = df_ce.iloc[np.where(df_ce['actual'] != 0)[0][0]:len(df_ce['timestamp'])]
 df_ce = df_ce.reset_index(drop=True)
 
+# seleccionar indicadores que hayan sido publicados 4 veces en cada mes (semanales)
 df_ce['mes'] = [pd.to_datetime(df_ce['timestamp'][i]).strftime('%m')
                 for i in range(0, len(df_ce['timestamp']))]
 unicos = list(set(df_ce['Name']))
@@ -65,6 +69,21 @@ df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'Markit Manufacturing PMI'].index, inpla
 df_ce_w = df_ce_w.reset_index(drop=True)
 
 df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'MBA Mortgage Applications'].index, inplace=True)
+df_ce_w = df_ce_w.reset_index(drop=True)
+
+df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'Consumer Confidence  United States'].index, inplace=True)
+df_ce_w = df_ce_w.reset_index(drop=True)
+
+df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'Retail Sales (MoM)'].index, inplace=True)
+df_ce_w = df_ce_w.reset_index(drop=True)
+
+df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'Retail Sales (YoY)'].index, inplace=True)
+df_ce_w = df_ce_w.reset_index(drop=True)
+
+df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'Business Climate'].index, inplace=True)
+df_ce_w = df_ce_w.reset_index(drop=True)
+
+df_ce_w.drop(df_ce_w[df_ce_w['Name'] == 'Markit Services PMI'].index, inplace=True)
 df_ce_w = df_ce_w.reset_index(drop=True)
 
 df_ce_w['Name'] = [df_ce_w['Currency'][i] + ' ' + df_ce_w['Name'][i] for i in range(0, len(df_ce_w['Name']))]
