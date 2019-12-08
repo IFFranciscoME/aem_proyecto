@@ -58,14 +58,13 @@ from datos import df_pe_m1 as df_pe_m1          # Importar los indicadores econ√
 res3_anova = fn.f_anova(p_datos_ce=df_ce_w, p_datos_ph=df_pe_m1)
 
 # regresa data frame con indicadores y escenarios que pasaron prueba de anova = no hay diferencia entre
-# las reacciones del precio en el escenario A.
+# las reacciones del precio en el escenario indicado en el dataframe de resultado.
 
 # -- --------------------------------------------------------------------------------- Modelo 4 STS-MASS -- #
 
 # -- para cada indicador, en su escenario detectado por anova, buscar si hubo repetici√≥n de patrones en
 # por lo menos, 50% de los casos.
-fn.f_stsc_mass(p_precios=df_pe_m1, p_calendario=df_ce_w[df_ce_w['Name'] == res3_anova['indicador'][0]],
-               p_indicador=res3_anova['indicador'][0], p_escenario=res3_anova['escenario'][0], p_ventana=30)
+fn.f_stsc_mass(p_precios=df_pe_m1, p_calendario=df_ce_w, p_indicadores=res3_anova, p_ventana=30)
 
 # -- ----------------------------------------------------------------------------- Estrategia de trading -- #
 

@@ -8,6 +8,7 @@ Eur_Usd_M1.csv
 
 # dejar de seguir todos los archivos de datos
 archivos/
+.idea/
 
 # C extensions
 *.so

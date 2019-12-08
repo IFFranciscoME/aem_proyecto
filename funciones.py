@@ -27,19 +27,19 @@ pd.options.mode.chained_assignment = None              # para evitar el warning 
 # -- ------------------------------------------------------------------------------- FUNCION: STS - MASS -- #
 # -- ------------------------------------------------------------------------------------ Version manual -- #
 
-def f_stsc_mass(p_precios, p_calendario, p_escenario, p_indicador, p_ventana):
+def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
     """
     :param: p_precios : dataframe : precios OHLC para crear una serie
     :param: p_calendario : dataframe :
-    :param: p_escenario : dataframe :
-    :param: p_indicador : dataframe :
+    :param: p_indicadores : dataframe :
     :param: p_ventana : int :
 
     :return:
 
     p_precios = df_pe_m1
-    p_indicador = df_ce_w
-    p_ventana = 40
+    p_indicadores = res3_anova
+    p_calendario = df_ce_w
+    p_ventana = 30
 
     """
 
@@ -48,41 +48,58 @@ def f_stsc_mass(p_precios, p_calendario, p_escenario, p_indicador, p_ventana):
     # hubo otras veces donde se repitió el mismo patrón y si las hubo, que sean de inmediato posterior
     # a las fechas cercanas al comunicado del indicador en otras fechas.
 
-    # fecha inicial de serie query es un evento arbitrario del calendario
-    fecha_ini = p_calendario[p_calendario['escenario'] == p_escenario]['timestamp'][0]
-    # se toma el timestamp de precios igual a timestamp del primer escenario del indicador
-    ind_ini = np.where(p_precios['timestamp'] == fecha_ini)[0]
-    # fecha final es la fecha inicial mas un tamaño de ventana arbitrario
-    ind_fin = ind_ini + p_ventana
-    # se construye la serie query
-    serie_q = p_precios.iloc[ind_ini[0]:ind_fin[0], :]
-    serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
+    indicador = p_indicadores['indicador'][0]
+    escenario = p_indicadores['escenario'][0]
+    sub_datos = p_calendario[(p_calendario['Name'] == indicador) & (p_calendario['escenario'] == escenario)]
 
-    # se construye la serie de busqueda (un array de numpy de 1 dimension)
-    serie = np.array((p_precios['close'] - p_precios['open']) * 10000)
+    # buscar motifs en todas las fechas en las que se publico el indicador y dio el escenario
+    # aprobado por anova
 
-    # parametros del algoritmo
-    # tamaño de ventana para iterar la busqueda = tamaño de query x 100
-    batch_size = p_ventana*100
-    # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador economico
-    top_matches = 180
-    # regresar los indices y las distancias
-    best_indices, best_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size, top_matches=top_matches)
+    for i in range(0, len(sub_datos['timestamp'])):
+        print('buscando patrones para: ' + str(sub_datos['timestamp'][i]))
 
-    # obtener las fechas de los indices regresados (fecha inicial del motif detectado)
-    m_fechas_i = [p_precios['timestamp'][best_indices[i]] for i in range(0, len(best_dists))]
-    m_fechas_f = [m_fechas_i[i+p_ventana] for i in range(0, len(m_fechas_i))]
+        # fecha inicial de serie query es un evento arbitrario del calendario
+        fecha_ini = sub_datos['timestamp'][i]
+        # se toma el timestamp de precios igual a timestamp del primer escenario del indicador
+        ind_ini = np.where(p_precios['timestamp'] == fecha_ini)[0]
+        # fecha final es la fecha inicial mas un tamaño de ventana arbitrario
+        ind_fin = ind_ini + p_ventana
+        # se construye la serie query
+        serie_q = p_precios.iloc[ind_ini[0]:ind_fin[0], :]
+        serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
 
-    # para cada rango de fecha se cuenta las veces que en tal rango se encuentra una fecha donde el
-    # mismo indicador se comunico y fue el mismo escenario
+        # se construye la serie de busqueda (un array de numpy de 1 dimension)
+        serie = np.array((p_precios['close'] - p_precios['open']) * 10000)
+
+        # parametros del algoritmo
+        # tamaño de ventana para iterar la busqueda = tamaño de query x 100
+        batch_size = p_ventana*10
+        # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador
+        top_matches = 100
+        # regresar los indices y las distancias
+        mass_indices, mass_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size,
+                                                   top_matches=top_matches)
+
+        # obtener las fechas de los indices regresados (fecha inicial del motif detectado y fecha final segun)
+        # amplitud p_ventana.
+        mass_fechas = [p_precios['timestamp'][mass_indices[i]] for i in range(0, len(mass_indices))]
+
+        # cada cada fecha propuesta por el MASS como fecha inicial de un motif con similitud, revisar si
+        # esta fecha propuesta coincide con otra fecha de publicación de indicador con el mismo escenario
+        fecha_encontrada = list()
+        for k in range(0, len(mass_fechas)):
+            encuentros = [i for i, j in enumerate(list(sub_datos['timestamp'])) if j == mass_fechas[k]]
+            if len(encuentros) != 0 and mass_fechas[k] != fecha_ini:
+                fecha_encontrada.append(mass_fechas[k])  # mismo patron entre precios y serie_q con mass
+
+        print(fecha_encontrada)
 
     # se regresa data frame con informacion sobre el conteo de fechas de presencia del patron
-
 
     # iterar con todos los patrones de serie query, para cada ocurrencia del escenario elegido
     # para el indicador elegido, buscando saber si hubo repeticiones, si las hubo regresar la fechas
 
-    return best_indices, best_dists
+    return 1
 
 
 # -- ------------------------------------------------- FUNCION: Clasificacion de escenarios de indicador -- #
