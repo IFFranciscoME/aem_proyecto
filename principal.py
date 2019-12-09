@@ -49,9 +49,6 @@ df2 = fn.f_pca(p_datos=df1, p_exp=0.85)
 # -- ajuste de modelo 1B: RLM con variables endogenas (reducido con PCA)
 m2 = fn.f_rlm(p_datos=df2, p_y='pca_y')
 
-# # -- comparativa de resultados entre modelos
-df_m1m2 = []
-
 # -- --------------------------------------------------------------------- Modelo 3: ANOVA para reacción -- #
 
 # Para saber si es conveniente utilizar la comunicación de indicadores economicos
@@ -80,5 +77,5 @@ df4 = m4
 # -- 2017-03-02 13:30:00+00:00 --> '2016-09-22 12:30:00+0000'
 # -- 2017-11-16 13:30:00+00:00 --> '2013-06-27 12:30:00+0000'
 
-df_ce_w_1 = df_ce_w.copy()[df_ce_w['Name'] == 'USD Initial Jobless Claims']
-m5 = fn.f_stsc_mass(p_precios=df_pe_m1, p_calendario=df_ce_w_1, p_indicadores=m4, p_ventana=30)
+# df_ce_w_1 = df_ce_w.copy()[df_ce_w['Name'] == 'USD Initial Jobless Claims']
+# m5 = fn.f_stsc_mass(p_precios=df_pe_m1, p_calendario=df_ce_w_1, p_indicadores=m4, p_ventana=30)

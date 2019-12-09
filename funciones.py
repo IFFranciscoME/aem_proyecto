@@ -14,8 +14,11 @@ from sklearn.preprocessing import StandardScaler       # estandarizacion de vari
 from sklearn.decomposition import PCA                  # analisis de componentes principales (PCA)
 import statsmodels.api as sm                           # utilidades para modelo regresion lineal
 from sklearn.model_selection import train_test_split   # separacion de conjunto de entrenamiento y prueba
+from sklearn.metrics import mean_squared_error         # error cuadratico medio
 
-import mass_ts as mts
+import mass_ts as mts                                  # Clustering para series de tiempo
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='mass_ts')
 
 pd.set_option('display.max_rows', None)                # sin limite de renglones maximos para mostrar pandas
 pd.set_option('display.max_columns', None)             # sin limite de columnas maximas para mostrar pandas
@@ -95,11 +98,7 @@ def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
                 fecha_encontrada.append(mass_fechas[k])  # mismo patron entre precios y serie_q con mass
 
         fechas.append(fecha_encontrada)
-
     # se regresa data frame con informacion sobre el conteo de fechas de presencia del patron
-
-    # iterar con todos los patrones de serie query, para cada ocurrencia del escenario elegido
-    # para el indicador elegido, buscando saber si hubo repeticiones, si las hubo regresar la fechas
 
     return fechas
 
@@ -343,8 +342,7 @@ def f_rlm(p_datos, p_y):
     x_multiple = np.array(datos.iloc[:, 1:])
 
     # datos para entrenamiento y prueba
-    train_x, test_x, train_y, test_y = train_test_split(x_multiple, y_multiple,
-                                                        test_size=0.2, shuffle=False)
+    train_x, test_x, train_y, test_y = train_test_split(x_multiple, y_multiple, test_size=0.2, shuffle=False)
 
     # Agregar interceptos a X en entrenamiento y prueba
     train_x_betha = sm.add_constant(train_x)
@@ -360,11 +358,9 @@ def f_rlm(p_datos, p_y):
     # Resultados de ajuste de modelo (prueba)
     modelo_fit_test = modelo_test.fit()
 
-    # -- Con datos de ENTRENAMIENTO
+    # -- -------------------------------------------------------------------- Con datos de ENTRENAMIENTO -- #
     # modelo completo resultante
     r_train_modelo = modelo_fit_train
-    # summary de resultados del modelo
-    r_train_summary = r_train_modelo.summary()
     # DataFrame con nombre de parametros segun dataset, nombre de parametros y pvalues segun modelo
     r_df_train = pd.DataFrame({'df_params': ['intercepto'] + list(datos.columns[1:]),
                                'm_params': r_train_modelo.model.data.param_names,
@@ -374,11 +370,9 @@ def f_rlm(p_datos, p_y):
     # valor de BIC del modelo
     r_train_bic = r_train_modelo.bic
 
-    # -- Con datos de PRUEBA
+    # -- --------------------------------------------------------------------------- Con datos de PRUEBA -- #
     # modelo completo resultante
     r_test_modelo = modelo_fit_test
-    # summary de resultados del modelo
-    r_test_summary = r_test_modelo.summary()
     # DataFrame con nombre de parametros segun dataset, nombre de parametros y pvalues segun modelo
     r_df_test = pd.DataFrame({'df_params': ['intercepto'] + list(datos.columns[1:]),
                               'm_params': r_test_modelo.model.data.param_names,
@@ -392,13 +386,19 @@ def f_rlm(p_datos, p_y):
     r_df_pred_train = pd.DataFrame({'y': train_y, 'y_ajustada': modelo_fit_train.predict()})
     # tabla de resultados periodo de prueba
     r_df_pred_test = pd.DataFrame({'y': test_y, 'y_ajustada': modelo_fit_test.predict()})
+    # Errores cuadraticos medios para entrenamiento y prueba
+    mse_train = round(mean_squared_error(r_df_pred_train['y'], r_df_pred_train['y_ajustada']), 2)
+    mse_test = round(mean_squared_error(r_df_pred_test['y'], r_df_pred_test['y_ajustada']), 2)
 
-    r_d_modelo = {'train': {'modelo': r_train_modelo, 'summary': r_train_summary, 'parametros': r_df_train,
-                            'resultado': r_df_pred_train, 'aic': r_train_aic, 'bic': r_train_bic},
-                  'test': {'modelo': r_test_modelo, 'summary': r_test_summary, 'parametros': r_df_test,
-                            'resultado': r_df_pred_test, 'aic': r_test_aic, 'bic': r_test_bic}}
+    # -- --------------------------------------------------------------------------------- Datos finales -- #
+    df_rlm = pd.DataFrame({'conjunto': ['train', 'test'],
+                           'aic': [round(r_train_aic, 2), round(r_test_aic, 2)],
+                           'bic': [round(r_train_bic, 2), round(r_test_bic, 2)],
+                           'params': [len(r_df_train), len(r_df_test)],
+                           'mse': [mse_train, mse_test],
+                           'r2': [round(r_train_modelo.rsquared, 4), round(r_test_modelo.rsquared, 4)]})
 
-    return r_d_modelo
+    return df_rlm
 
 
 # -- ---------------------------------------------------------------------- FUNCION: Aplicar PCA a datos -- #
