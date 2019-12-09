@@ -78,7 +78,7 @@ def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
         # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador
         top_matches = 100
         # regresar los indices y las distancias
-        mass_indices, mass_dists = serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)(serie, serie_q, batch_size=batch_size,
+        mass_indices, mass_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size,
                                                    top_matches=top_matches)
 
         # obtener las fechas de los indices regresados (fecha inicial del motif detectado y fecha final segun)
