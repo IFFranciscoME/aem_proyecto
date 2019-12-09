@@ -6,6 +6,7 @@
 # -- Autor: Francisco ME                                                                                 -- #
 # -- --------------------------------------------------------------------------------------------------- -- #
 
+import numpy as np
 import funciones as fn                          # Importar funcione especiales hechas para este proyecto
 import visualizaciones as vs                    # Importar funciones para visualizaciones
 from datos import df_pe_w as df_pe_w            # Importar los precios historicos semanales
@@ -20,13 +21,13 @@ g1 = vs.g_velas(p0_de=df_pe_w[1:50])
 g2 = vs.g_velas_reaccion(p0_de=df_pe_m1[0:29])
 
 # -- SLIDES visualizacion de precios semanales
-slides_df1 = df_pe_w.copy().iloc[1:5, :]
+slides_df1 = df_pe_w.copy().iloc[1:7, :]
 
 # -- SLIDES visualizacion de precios semanales
-slides_df2 = df_pe_m1.copy().iloc[1:5, :]
+slides_df2 = df_pe_m1.copy().iloc[1:7, :]
 
 # -- SLIDES visualizacion de calendario económico
-slides_df3 = df_ce_w.copy().iloc[27:32, :-1]
+slides_df3 = df_ce_w.copy().iloc[27:35, :-1]
 
 # -- --------------------------------------------------------------------------- Ingeniería de variables -- #
 # -- generacion de variables endogenas
@@ -64,10 +65,15 @@ df4 = m4
 
 # -- --------------------------------------------------------------------------------- Modelo 4 STS-MASS -- #
 
-# -- para cada indicador, en su escenario detectado por anova, buscar si hubo repetición de patrones en
-# por lo menos, 50% de los casos.
+# -- para cada indicador, en su escenario detectado por anova, buscar si hubo repetición de patrones
 
+# df_ce_w_1 = df_ce_w.copy()[df_ce_w['Name'] == 'USD Initial Jobless Claims']
+# m5 = fn.f_stsc_mass(p_precios=df_pe_m1, p_calendario=df_ce_w_1, p_ventana=30)
+
+# Datos encontrados en proceso iterativo que duro 5 horas:
+# indicador:
 # USD Initial Jobless Claims
+# Fechas:
 # -- 2009-02-05 13:30:00+00:00 --> '2015-07-02 12:30:00+0000'
 # -- 2009-05-21 12:30:00+00:00 --> '2013-02-14 13:30:00+0000'
 # -- 2009-02-05 13:30:00+00:00 --> '2015-07-02 12:30:00+0000'
@@ -78,5 +84,14 @@ df4 = m4
 # -- 2017-03-02 13:30:00+00:00 --> '2016-09-22 12:30:00+0000'
 # -- 2017-11-16 13:30:00+00:00 --> '2013-06-27 12:30:00+0000'
 
-# df_ce_w_1 = df_ce_w.copy()[df_ce_w['Name'] == 'USD Initial Jobless Claims']
-# m5 = fn.f_stsc_mass(p_precios=df_pe_m1, p_calendario=df_ce_w_1, p_indicadores=m4, p_ventana=30)
+ind_a = np.where(df_pe_m1['timestamp'] == '2009-02-05 13:30:00+00:00')[0][0]
+ind_b = ind_a + 30
+df5_1 = df_pe_m1.copy().iloc[ind_a:ind_b, :]
+datos_1 = (df5_1['close'] - df5_1['open'])*10000
+
+ind_y = np.where(df_pe_m1['timestamp'] == '2015-07-02 12:30:00+0000')[0][0]
+ind_z = ind_y + 30
+df5_2 = df_pe_m1.copy().iloc[ind_y:ind_z, :]
+datos_2 = (df5_2['close'] - df5_2['open'])*10000
+
+g3 = vs.g_lineas(p_datos1=datos_1, p_datos2=datos_2)

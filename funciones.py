@@ -27,10 +27,10 @@ pd.set_option('display.expand_frame_repr', False)      # visualizar todas las co
 pd.options.mode.chained_assignment = None              # para evitar el warning enfadoso de indexacion
 
 
-# -- ------------------------------------------------------------------------------- FUNCION: STS - MASS -- #
+# -- ------------------------------------------------------------------------------ FUNCION: STSC - MASS -- #
 # -- ------------------------------------------------------------------------------------ Version manual -- #
 
-def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
+def f_stsc_mass(p_precios, p_calendario, p_ventana):
     """
     :param: p_precios : dataframe : precios OHLC para crear una serie
     :param: p_calendario : dataframe :
@@ -98,7 +98,6 @@ def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
                 fecha_encontrada.append(mass_fechas[k])  # mismo patron entre precios y serie_q con mass
 
         fechas.append(fecha_encontrada)
-    # se regresa data frame con informacion sobre el conteo de fechas de presencia del patron
 
     return fechas
 
@@ -445,40 +444,3 @@ def f_pca(p_datos, p_exp):
     r_datos_pca.columns = ['pca_y'] + ['pca_x_' + str(i) for i in range(0, pca_90)]
 
     return r_datos_pca
-
-
-# -- ---------------------------------------------------------------------- FUNCION: Desempeño de modelo -- #
-# -- ---------------------------------------------------------------------- ---------------------------- -- #
-
-def f_analisis_mod(p_datos):
-    """
-    :param p_datos
-    :return:
-    p_datos = df_datos
-    """
-
-    # from statsmodels.stats.outliers_influence import variance_inflation_factor
-    # from patsy import dmatrices
-    # p_datos.index = [np.arange(len(p_datos))]
-    # features = " + ".join(list(p_datos.columns[1:]))
-    # y, X = dmatrices('co ~' + features, p_datos, return_type='dataframe')
-    # vif = pd.DataFrame()
-    # vif["VIF Factor"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
-    # vif["features"] = X.columns
-
-    return p_datos
-
-
-# -- ------------------------------------------------------------------- FUNCION: Seleccion de variables -- #
-# -- -------------------------------------------------------------------- ------------------------------ -- #
-
-def f_feature_importance(p_datos):
-    """
-    :param p_datos:
-    :return:
-    p_datos = df_datos
-    """
-
-    # np.corrcoef()
-
-    return p_datos
