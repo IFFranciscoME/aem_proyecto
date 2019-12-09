@@ -182,7 +182,7 @@ def f_anova(p_datos_ce, p_datos_ph):
                               'open': 1.3556, 'high': 1.3586, 'low': 1.3516, 'close': 1.3543})
         p3_ce = pd.DataFrame({})
         """
-        print(p0_i)
+        # print(p0_i)
         # print(' fecha ce: ' + str(p3_ce['timestamp'][p0_i]))
 
         # Encontrar indice donde el timestamp de precios sea igual al del calendario
@@ -350,7 +350,7 @@ def f_rlm(p_datos, p_y):
 
     # datos para entrenamiento y prueba
     train_x, test_x, train_y, test_y = train_test_split(x_multiple, y_multiple,
-                                                        test_size=0.8, shuffle=False)
+                                                        test_size=0.2, shuffle=False)
 
     # Agregar interceptos a X en entrenamiento y prueba
     train_x_betha = sm.add_constant(train_x)

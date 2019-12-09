@@ -232,9 +232,6 @@ def f_precios_masivos(p0_fini, p1_ffin, p2_gran, p3_inst, p4_oatk, p5_ginc):
 
         return r_df_final
 
-
-print('Fin proceso cargar datos ligeros')
-
 # -- ---------------------------------------------------------------------- Proceso de descarga completo -- #
 # -- ---------------------------------------------------------------------- ---------------------------- -- #
 # -- Solo correr esta parte si se quiere descargar todos los precios

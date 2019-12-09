@@ -31,14 +31,14 @@ def g_velas(p0_de):
                                          open=p0_de['open'], high=p0_de['high'],
                                          low=p0_de['low'], close=p0_de['close'])])
 
-    fig.update_layout(
-        title=dict(x=0.5, text='Precios Historicos OHLC'),
-        xaxis=dict(title_text='Hora del dia', rangeslider=dict(visible=False)),  # Etiquetas de eje x
-        yaxis=dict(title_text='Precio del EurUsd'))
+    fig.update_layout(margin=go.layout.Margin(l=50, r=50, b=20, t=50, pad=0),
+                      title=dict(x=0.5, y=1, text='Precios Historicos OHLC'),
+                      xaxis=dict(title_text='Hora del dia', rangeslider=dict(visible=False)),
+                      yaxis=dict(title_text='Precio del EurUsd'))
 
     fig.layout.autosize = False
     fig.layout.width = 840
-    fig.layout.height = 600
+    fig.layout.height = 520
 
     return fig
 
