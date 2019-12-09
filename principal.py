@@ -45,9 +45,10 @@ m1 = fn.f_rlm(p_datos=df1, p_y='co')
 
 # -- utilizar PCA para reducir dimensionalidad de modelo 1
 df2 = fn.f_pca(p_datos=df1, p_exp=0.85)
+m2_p, m2_d = 0.85, len(df2.columns)-1
 
 # -- ajuste de modelo 1B: RLM con variables endogenas (reducido con PCA)
-m2 = fn.f_rlm(p_datos=df2, p_y='pca_y')
+m3 = fn.f_rlm(p_datos=df2, p_y='pca_y')
 
 # -- --------------------------------------------------------------------- Modelo 3: ANOVA para reacción -- #
 
