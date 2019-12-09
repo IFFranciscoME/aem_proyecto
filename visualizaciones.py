@@ -7,10 +7,8 @@
 # -- --------------------------------------------------------------------------------------------------- -- #
 
 import plotly.graph_objs as go
-# para elegir el motor de renderizacion por default
 import plotly.io as pio
-
-pio.renderers.default = "browser"
+pio.renderers.default = "browser"                         # render de imagenes para correr en script
 
 
 # -- ------------------------------------------------------------------------------------------- ------- -- #
@@ -34,9 +32,13 @@ def g_velas(p0_de):
                                          low=p0_de['low'], close=p0_de['close'])])
 
     fig.update_layout(
-        title=dict(x=0.5, text='Precios Historicos '),
-        xaxis=dict(title_text='Hora del dia'),  # Etiquetas de eje x
+        title=dict(x=0.5, text='Precios Historicos OHLC'),
+        xaxis=dict(title_text='Hora del dia', rangeslider=dict(visible=False)),  # Etiquetas de eje x
         yaxis=dict(title_text='Precio del EurUsd'))
+
+    fig.layout.autosize = False
+    fig.layout.width = 840
+    fig.layout.height = 600
 
     return fig
 
