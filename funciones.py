@@ -66,18 +66,19 @@ def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
         ind_fin = ind_ini + p_ventana
         # se construye la serie query
         serie_q = p_precios.iloc[ind_ini[0]:ind_fin[0], :]
-        serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
+        # serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
+        serie_q = np.array(serie_q['close'])
 
         # se construye la serie de busqueda (un array de numpy de 1 dimension)
-        serie = np.array((p_precios['close'] - p_precios['open']) * 10000)
+        serie = np.array(p_precios['close'])
 
         # parametros del algoritmo
-        # tamaño de ventana para iterar la busqueda = tamaño de query x 100
-        batch_size = p_ventana*10
+        # tamaño de ventana para iterar la busqueda = tamaño de query
+        batch_size = p_ventana
         # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador
         top_matches = 100
         # regresar los indices y las distancias
-        mass_indices, mass_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size,
+        mass_indices, mass_dists = serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)(serie, serie_q, batch_size=batch_size,
                                                    top_matches=top_matches)
 
         # obtener las fechas de los indices regresados (fecha inicial del motif detectado y fecha final segun)
