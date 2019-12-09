@@ -48,66 +48,60 @@ def f_stsc_mass(p_precios, p_calendario, p_indicadores, p_ventana):
     # hubo otras veces donde se repitió el mismo patrón y si las hubo, que sean de inmediato posterior
     # a las fechas cercanas al comunicado del indicador en otras fechas.
 
-    finales = list()
-    for m in range(0, len(list(p_indicadores['indicador']))):
+    fechas = list()
+    sub_datos = p_calendario
 
-        indicador = p_indicadores['indicador'][m]
-        escenario = p_indicadores['escenario'][m]
-        sub_datos = p_calendario[p_calendario['Name'] == indicador]
+    # buscar motifs en todas las fechas en las que se publico el indicador y dio el escenario
+    # aprobado por anova
 
-        # buscar motifs en todas las fechas en las que se publico el indicador y dio el escenario
-        # aprobado por anova
+    for i in range(0, len(sub_datos['timestamp'])):
+        # print('buscando patrones para: ' + indicador + ' en ' + str(sub_datos['timestamp'][i]))
 
-        for i in range(0, len(sub_datos['timestamp'])):
-            print('buscando patrones para: ' + indicador + ' en ' + str(sub_datos['timestamp'][i]))
+        # fecha inicial de serie query es un evento arbitrario del calendario
+        fecha_ini = sub_datos['timestamp'][i]
+        # se toma el timestamp de precios igual a timestamp del primer escenario del indicador
+        ind_ini = np.where(p_precios['timestamp'] == fecha_ini)[0]
+        # fecha final es la fecha inicial mas un tamaño de ventana arbitrario
+        ind_fin = ind_ini + p_ventana
+        # se construye la serie query
+        serie_q = p_precios.iloc[ind_ini[0]:ind_fin[0], :]
+        # serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
+        serie_q = np.array(serie_q['close'])
+        serie_q = serie_q/max(serie_q)
 
-            # fecha inicial de serie query es un evento arbitrario del calendario
-            fecha_ini = sub_datos['timestamp'][i]
-            # se toma el timestamp de precios igual a timestamp del primer escenario del indicador
-            ind_ini = np.where(p_precios['timestamp'] == fecha_ini)[0]
-            # fecha final es la fecha inicial mas un tamaño de ventana arbitrario
-            ind_fin = ind_ini + p_ventana
-            # se construye la serie query
-            serie_q = p_precios.iloc[ind_ini[0]:ind_fin[0], :]
-            # serie_q = np.array((serie_q['close'] - serie_q['open']) * 10000)
-            serie_q = np.array(serie_q['close'])
-            serie_q = serie_q/max(serie_q)
+        # se construye la serie de busqueda (un array de numpy de 1 dimension)
+        serie = np.array(p_precios['close'])[7:]
+        serie = serie/max(serie)
 
-            # se construye la serie de busqueda (un array de numpy de 1 dimension)
-            serie = np.array(p_precios['close'])[7:]
-            serie = serie/max(serie)
+        # parametros del algoritmo
+        # tamaño de ventana para iterar la busqueda = tamaño de query
+        batch_size = p_ventana*100
+        # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador
+        top_matches = 100
+        # regresar los indices y las distancias
+        mass_indices, mass_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size,
+                                                   top_matches=top_matches, n_jobs=3)
 
-            # parametros del algoritmo
-            # tamaño de ventana para iterar la busqueda = tamaño de query
-            batch_size = p_ventana*100
-            # regresar los Top X casos que "mas se parezcan" = Cantidad total de publicaciones de indicador
-            top_matches = 100
-            # regresar los indices y las distancias
-            mass_indices, mass_dists = mts.mass2_batch(serie, serie_q, batch_size=batch_size,
-                                                       top_matches=top_matches, n_jobs=3)
+        # obtener las fechas de los indices regresados fecha inicial del motif detectado y
+        # fecha final segun amplitud p_ventana.
+        mass_fechas = [p_precios['timestamp'][mass_indices[i]] for i in range(0, len(mass_indices))]
 
-            # obtener las fechas de los indices regresados fecha inicial del motif detectado y
-            # fecha final segun amplitud p_ventana.
-            mass_fechas = [p_precios['timestamp'][mass_indices[i]] for i in range(0, len(mass_indices))]
+        # cada cada fecha propuesta por el MASS como fecha inicial de un motif con similitud, revisar si
+        # esta fecha propuesta coincide con otra fecha de publicación de indicador con el mismo escenario
+        fecha_encontrada = list()
+        for k in range(0, len(mass_fechas)):
+            encuentros = [i for i, j in enumerate(list(sub_datos['timestamp'])) if j == mass_fechas[k]]
+            if len(encuentros) != 0 and mass_fechas[k] != fecha_ini:
+                fecha_encontrada.append(mass_fechas[k])  # mismo patron entre precios y serie_q con mass
 
-            # cada cada fecha propuesta por el MASS como fecha inicial de un motif con similitud, revisar si
-            # esta fecha propuesta coincide con otra fecha de publicación de indicador con el mismo escenario
-            fecha_encontrada = list()
-            for k in range(0, len(mass_fechas)):
-                encuentros = [i for i, j in enumerate(list(sub_datos['timestamp'])) if j == mass_fechas[k]]
-                if len(encuentros) != 0 and mass_fechas[k] != fecha_ini:
-                    fecha_encontrada.append(mass_fechas[k])  # mismo patron entre precios y serie_q con mass
-
-            print(fecha_encontrada)
-            res_mass = {'fechas': fecha_encontrada, 'indicador': indicador, 'escenario': escenario}
-        finales.append(res_mass)
+        fechas.append(fecha_encontrada)
 
     # se regresa data frame con informacion sobre el conteo de fechas de presencia del patron
 
     # iterar con todos los patrones de serie query, para cada ocurrencia del escenario elegido
     # para el indicador elegido, buscando saber si hubo repeticiones, si las hubo regresar la fechas
 
-    return 1
+    return fechas
 
 
 # -- ------------------------------------------------- FUNCION: Clasificacion de escenarios de indicador -- #
@@ -219,7 +213,7 @@ def f_anova(p_datos_ce, p_datos_ph):
     ocurrencias = list()
 
     for i in range(0, len(indicadores)):
-        print(i)
+        # print(i)
         datos_ind = p_datos_ce[p_datos_ce['Name'] == indicadores[i]]
         conteos = list(datos_ind['escenario'].value_counts())
         con_max = int(np.trunc(max(conteos)/4))
